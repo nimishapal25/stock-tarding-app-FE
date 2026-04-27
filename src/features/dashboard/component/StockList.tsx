@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { allStocksAPI } from "../api/allStocksAPI";
+import { io, type Socket } from "socket.io-client";
 
 const chipBySymbol: Record<string, string> = {
   REL: "bg-blue-50 border-blue-100 text-indigo-600",
@@ -27,6 +28,7 @@ type PaginationInfo = {
 };
 
 const DEFAULT_LIMIT = 5;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 export const StockList = () => {
   const [stocks, setStocks] = useState<LiveStock[]>([]);
@@ -43,9 +45,15 @@ export const StockList = () => {
       const nextPagination = (payload.pagination ??
         null) as PaginationInfo | null;
 
-      setStocks((prev) =>
-        targetPage === 1 ? newStocks : [...prev, ...newStocks],
-      );
+      setStocks((prev) => {
+        if (targetPage === 1) return newStocks;
+
+        // de-dupe while appending
+        const map = new Map(prev.map((s) => [s.instrument_token, s]));
+        newStocks.forEach((s) => map.set(s.instrument_token, s));
+        return Array.from(map.values());
+      });
+
       setPagination(nextPagination);
       setPage(targetPage);
     } finally {
@@ -55,6 +63,33 @@ export const StockList = () => {
 
   useEffect(() => {
     fetchPage(1);
+  }, []);
+
+  useEffect(() => {
+    const socket: Socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+
+    socket.on("stocks:update", (updatedStocks: LiveStock[]) => {
+      setStocks((prev) => {
+        const map = new Map(prev.map((s) => [s.instrument_token, s]));
+
+        // update only currently loaded rows
+        updatedStocks.forEach((u) => {
+          if (map.has(u.instrument_token)) {
+            map.set(u.instrument_token, {
+              ...map.get(u.instrument_token),
+              ...u,
+            } as LiveStock);
+          }
+        });
+
+        return Array.from(map.values());
+      });
+    });
+
+    return () => socket.disconnect();
   }, []);
 
   const handleLoadMore = () => {

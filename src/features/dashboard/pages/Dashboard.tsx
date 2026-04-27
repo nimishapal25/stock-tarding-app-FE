@@ -7,7 +7,7 @@ export function Dashboard() {
     <div className="flex flex-col h-screen overflow-hidden">
       <NavbarComponent />
 
-      <main className="flex flex-1 bg-slate-50 mx-auto w-full max-w-400 min-h-0 overflow-hidden">
+      <main className="sm:hidden md:hidden flex flex-1 bg-slate-50 mx-auto w-full max-w-400 min-h-0 overflow-hidden">
         <div className="flex flex-col flex-1 p-6 lg:p-8 min-h-0">
           <section className="mb-8">
             <h1 className="mb-6 font-bold text-gray-900 text-2xl tracking-tight">

@@ -89,7 +89,9 @@ export const StockList = () => {
       });
     });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const handleLoadMore = () => {

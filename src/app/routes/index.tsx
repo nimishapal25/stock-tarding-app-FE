@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "../../features/auth/pages/Login";
 import { CreateAccount } from "../../features/auth/pages/CreateAccount";
 import { Dashboard } from "../../features/dashboard/pages/Dashboard";
@@ -9,6 +9,7 @@ export const AppRoutes = () => {
     <Routes>
       {/* <Route element={<RedirectLoggedIn />}> */}
       <Route path="/login" element={<Login />}></Route>
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/register" element={<CreateAccount />}></Route>
       {/* </Route> */}
 

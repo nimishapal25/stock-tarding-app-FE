@@ -3,7 +3,6 @@ import { Login } from "../../features/auth/pages/Login";
 import { CreateAccount } from "../../features/auth/pages/CreateAccount";
 import { Dashboard } from "../../features/dashboard/pages/Dashboard";
 import { ProtectedRoute } from "./protectedRoute";
-import { RedirectLoggedIn } from "./RedirectLoggedIn";
 
 export const AppRoutes = () => {
   return (

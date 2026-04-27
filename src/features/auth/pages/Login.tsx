@@ -34,7 +34,6 @@ export const Login = () => {
         `${import.meta.env.VITE_API_ENDPOINT}/users/zerodha-login`,
         "_blank",
       );
-      // navigate("/dashboard");
     } catch {
       setApiError("Unable to sign in. Please check your credentials.");
     } finally {

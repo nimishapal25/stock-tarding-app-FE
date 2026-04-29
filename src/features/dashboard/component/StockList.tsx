@@ -48,7 +48,6 @@ export const StockList = () => {
       setStocks((prev) => {
         if (targetPage === 1) return newStocks;
 
-        // de-dupe while appending
         const map = new Map(prev.map((s) => [s.instrument_token, s]));
         newStocks.forEach((s) => map.set(s.instrument_token, s));
         return Array.from(map.values());
@@ -61,10 +60,37 @@ export const StockList = () => {
     }
   };
 
+  // Initial fetch with retry (handles "first tick not arrived yet")
   useEffect(() => {
-    fetchPage(1);
+    let retryCount = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const fetchInitial = async () => {
+      const res = await allStocksAPI.getAllStocks(1, DEFAULT_LIMIT);
+      const payload = res.data?.data ?? {};
+      const newStocks = (payload.data ?? []) as LiveStock[];
+      const nextPagination = (payload.pagination ??
+        null) as PaginationInfo | null;
+
+      if (newStocks.length === 0 && retryCount < 5) {
+        retryCount += 1;
+        timer = setTimeout(fetchInitial, 1000);
+        return;
+      }
+
+      setStocks(newStocks);
+      setPagination(nextPagination);
+      setPage(1);
+    };
+
+    fetchInitial();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
+  // Socket live updates for loaded rows
   useEffect(() => {
     const socket: Socket = io(SOCKET_URL, {
       transports: ["websocket"],
@@ -75,11 +101,10 @@ export const StockList = () => {
       setStocks((prev) => {
         const map = new Map(prev.map((s) => [s.instrument_token, s]));
 
-        // update only currently loaded rows
         updatedStocks.forEach((u) => {
           if (map.has(u.instrument_token)) {
             map.set(u.instrument_token, {
-              ...map.get(u.instrument_token),
+              ...(map.get(u.instrument_token) ?? {}),
               ...u,
             } as LiveStock);
           }

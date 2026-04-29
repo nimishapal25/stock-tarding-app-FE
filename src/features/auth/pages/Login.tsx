@@ -30,10 +30,7 @@ export const Login = () => {
       if (token) {
         Cookies.set("token", token, { expires: 7 });
       }
-      window.open(
-        `${import.meta.env.VITE_API_ENDPOINT}/users/zerodha-login`,
-        "_blank",
-      );
+      window.location.href = `${import.meta.env.VITE_API_ENDPOINT}/users/zerodha-login`;
     } catch {
       setApiError("Unable to sign in. Please check your credentials.");
     } finally {
